@@ -1,0 +1,397 @@
+-- Services
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextChatService = game:GetService("TextChatService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local character = player.Character or player.CharacterAdded:Wait()
+
+player.CharacterAdded:Connect(function(char)
+	character = char
+	if _G.ActiveEmoteStopFunc then
+		pcall(_G.ActiveEmoteStopFunc)
+		_G.ActiveEmoteStopFunc = nil
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- CHAT EXECUTION MESSAGE FUNCTION
+--------------------------------------------------------------------------------
+task.spawn(function()
+	task.wait(1)
+	pcall(function()
+		local message1 = "•GoaT BaNg ExEcUtEd•"
+		local message2 = "•MaDe By YoUr DaDdY FaRhAn•"
+		
+		local tcsChannels = TextChatService:FindFirstChild("TextChannels")
+		local rbxGeneral = tcsChannels and tcsChannels:FindFirstChild("RBXGeneral")
+		
+		if rbxGeneral then
+			rbxGeneral:SendAsync(message1)
+			task.wait(2)
+			rbxGeneral:SendAsync(message2)
+		else
+			local chatEvents = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents")
+			local sayMessageRequest = chatEvents and chatEvents:FindFirstChild("SayMessageRequest")
+			if sayMessageRequest then
+				sayMessageRequest:FireServer(message1, "All")
+				task.wait(2)
+				sayMessageRequest:FireServer(message2, "All")
+			end
+		end
+	end)
+end)
+
+--------------------------------------------------------------------------------
+-- AXZ PROTECTION FLAGS & ENGINE
+--------------------------------------------------------------------------------
+_G.AntiSit = false
+_G.AntiVoid = false
+_G.AntiFling = false
+_G.AntiBring = false
+_G.AntiFreeze = false
+_G.AntiRagdoll = false
+_G.AntiBlind = false
+
+_G.SavedDiscordUser = _G.SavedDiscordUser or ""
+pcall(function()
+	if readfile and isfile and isfile("GoaT_WebhookUser.txt") then
+		_G.SavedDiscordUser = readfile("GoaT_WebhookUser.txt")
+	end
+end)
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AdvancedTabbedGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local decalId = "100153904086749"
+local rbxthumbUrl = "rbxthumb://type=Asset&id=" .. decalId .. "&w=420&h=420"
+local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1566559201654870066/1Y4ssDfkj4XgEgJ9YLuyutAXwzRfKcJstv9NfjC3HuYbsVHSHYvipvRjqzjQsv_b_Ckg"
+
+local multiModeBtn, dressTabBtn, webhookInputFrame
+local startMainLoadingScreen
+local showDynamicPopup -- Forward declaration
+
+--------------------------------------------------------------------------------
+-- KEYLESS AUTHENTICATION & ROLE MANAGEMENT
+--------------------------------------------------------------------------------
+local CORRECT_MEMBER_PASSWORD = "GOATONTOP AS ALAWAYS KAROR BAPER KHOMOTA NAI GOAT KE HARANOR"
+local isMemberAuthed = false
+local accessRole = "Guest" -- Default to Guest
+
+pcall(function()
+	if readfile and isfile and isfile("Ex_GoaT_Auth.txt") then
+		local savedPass = readfile("Ex_GoaT_Auth.txt")
+		if savedPass == CORRECT_MEMBER_PASSWORD then
+			isMemberAuthed = true
+			accessRole = "Member"
+		end
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- AUTHENTICATION SELECTION SCREEN (Bypassed if already saved)
+--------------------------------------------------------------------------------
+local authBlur, authOverlay
+
+if not isMemberAuthed then
+	authBlur = Instance.new("BlurEffect")
+	authBlur.Name = "AuthBlur"
+	authBlur.Size = 999
+	authBlur.Enabled = true
+	authBlur.Parent = Lighting
+
+	authOverlay = Instance.new("Frame")
+	authOverlay.Name = "AuthOverlay"
+	authOverlay.Size = UDim2.new(5, 0, 5, 0)
+	authOverlay.Position = UDim2.new(-2, 0, -2, 0)
+	authOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	authOverlay.BackgroundTransparency = 0.15
+	authOverlay.BorderSizePixel = 0
+	authOverlay.ZIndex = 200
+	authOverlay.Parent = screenGui
+
+	local authMainBox = Instance.new("Frame", authOverlay)
+	authMainBox.Size = UDim2.new(0, 380, 0, 240)
+	authMainBox.AnchorPoint = Vector2.new(0.5, 0.5)
+	authMainBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+	authMainBox.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
+	authMainBox.BackgroundTransparency = 0.2
+	authMainBox.BorderSizePixel = 0
+	authMainBox.ZIndex = 201
+
+	Instance.new("UICorner", authMainBox).CornerRadius = UDim.new(0, 16)
+	local authStroke = Instance.new("UIStroke", authMainBox)
+	authStroke.Color = Color3.fromRGB(255, 255, 255)
+	authStroke.Transparency = 0.3
+	authStroke.Thickness = 2
+
+	local authTitle = Instance.new("TextLabel", authMainBox)
+	authTitle.Size = UDim2.new(1, 0, 0, 40)
+	authTitle.Position = UDim2.new(0, 0, 0, 20)
+	authTitle.BackgroundTransparency = 1
+	authTitle.Font = Enum.Font.GothamBold
+	authTitle.Text = "•Choose Access Level•"
+	authTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+	authTitle.TextSize = 20
+	authTitle.TextXAlignment = Enum.TextXAlignment.Center
+	authTitle.ZIndex = 202
+
+	local guestBtn = Instance.new("TextButton", authMainBox)
+	guestBtn.Size = UDim2.new(0, 300, 0, 45)
+	guestBtn.AnchorPoint = Vector2.new(0.5, 0)
+	guestBtn.Position = UDim2.new(0.5, 0, 0, 80)
+	guestBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+	guestBtn.Font = Enum.Font.GothamBold
+	guestBtn.Text = "Guest (Limited Features)"
+	guestBtn.TextColor3 = Color3.fromRGB(200, 200, 220)
+	guestBtn.TextSize = 14
+	guestBtn.BorderSizePixel = 0
+	guestBtn.ZIndex = 202
+	Instance.new("UICorner", guestBtn).CornerRadius = UDim.new(0, 10)
+
+	local memberBtn = Instance.new("TextButton", authMainBox)
+	memberBtn.Size = UDim2.new(0, 300, 0, 45)
+	memberBtn.AnchorPoint = Vector2.new(0.5, 0)
+	memberBtn.Position = UDim2.new(0.5, 0, 0, 140)
+	memberBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	memberBtn.Font = Enum.Font.GothamBold
+	memberBtn.Text = "GoaT Members"
+	memberBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+	memberBtn.TextSize = 14
+	memberBtn.BorderSizePixel = 0
+	memberBtn.ZIndex = 202
+	Instance.new("UICorner", memberBtn).CornerRadius = UDim.new(0, 10)
+
+	local passBoxContainer = Instance.new("Frame", authMainBox)
+	passBoxContainer.Size = UDim2.new(0, 320, 0, 110)
+	passBoxContainer.AnchorPoint = Vector2.new(0.5, 0)
+	passBoxContainer.Position = UDim2.new(0.5, 0, 0, 75)
+	passBoxContainer.BackgroundTransparency = 1
+	passBoxContainer.Visible = false
+	passBoxContainer.ZIndex = 202
+
+	local passPromptLabel = Instance.new("TextLabel", passBoxContainer)
+	passPromptLabel.Size = UDim2.new(1, 0, 0, 25)
+	passPromptLabel.BackgroundTransparency = 1
+	passPromptLabel.Font = Enum.Font.GothamBold
+	passPromptLabel.Text = "Enter Member Password:"
+	passPromptLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	passPromptLabel.TextSize = 13
+	passPromptLabel.TextXAlignment = Enum.TextXAlignment.Center
+	passPromptLabel.ZIndex = 202
+
+	local passTextBox = Instance.new("TextBox", passBoxContainer)
+	passTextBox.Size = UDim2.new(1, 0, 0, 36)
+	passTextBox.Position = UDim2.new(0, 0, 0, 28)
+	passTextBox.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+	passTextBox.Font = Enum.Font.GothamBold
+	passTextBox.PlaceholderText = "Password..."
+	passTextBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 140)
+	passTextBox.Text = ""
+	passTextBox.TextColor3 = Color3.fromRGB(0, 255, 128)
+	passTextBox.TextSize = 11
+	passTextBox.ClearTextOnFocus = false
+	passTextBox.ZIndex = 203
+	Instance.new("UICorner", passTextBox).CornerRadius = UDim.new(0, 8)
+
+	local passSubmitBtn = Instance.new("TextButton", passBoxContainer)
+	passSubmitBtn.Size = UDim2.new(1, 0, 0, 32)
+	passSubmitBtn.Position = UDim2.new(0, 0, 0, 70)
+	passSubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 127)
+	passSubmitBtn.Font = Enum.Font.GothamBold
+	passSubmitBtn.Text = "Verify"
+	passSubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	passSubmitBtn.TextSize = 12
+	passSubmitBtn.ZIndex = 203
+	Instance.new("UICorner", passSubmitBtn).CornerRadius = UDim.new(0, 8)
+
+	guestBtn.MouseButton1Click:Connect(function()
+		accessRole = "Guest"
+		if multiModeBtn then multiModeBtn:Destroy() end
+		if dressTabBtn then dressTabBtn:Destroy() end
+		if webhookInputFrame then webhookInputFrame:Destroy() end
+		
+		authBlur:Destroy()
+		authOverlay:Destroy()
+		startMainLoadingScreen()
+	end)
+
+	memberBtn.MouseButton1Click:Connect(function()
+		authTitle.Text = "•Member Verification•"
+		guestBtn.Visible = false
+		memberBtn.Visible = false
+		passBoxContainer.Visible = true
+	end)
+
+	passSubmitBtn.MouseButton1Click:Connect(function()
+		if passTextBox.Text == CORRECT_MEMBER_PASSWORD then
+			accessRole = "Member"
+			pcall(function()
+				if writefile then
+					writefile("Ex_GoaT_Auth.txt", CORRECT_MEMBER_PASSWORD)
+				end
+			end)
+			
+			passSubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 128)
+			passSubmitBtn.Text = "Success! Saved Key"
+			task.wait(0.6)
+			
+			authBlur:Destroy()
+			authOverlay:Destroy()
+			startMainLoadingScreen()
+		else
+			passSubmitBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+			passSubmitBtn.Text = "Wrong Password!"
+			task.wait(1.2)
+			passSubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 127)
+			passSubmitBtn.Text = "Verify"
+			passTextBox.Text = ""
+		end
+	end)
+end
+
+--------------------------------------------------------------------------------
+-- LOADING SCREEN FUNCTION
+--------------------------------------------------------------------------------
+startMainLoadingScreen = function()
+	local loadBlur = Instance.new("BlurEffect")
+	loadBlur.Name = "LoadingBlur"
+	loadBlur.Size = 999
+	loadBlur.Enabled = true
+	loadBlur.Parent = Lighting
+
+	local loadOverlay = Instance.new("Frame")
+	loadOverlay.Name = "LoadingOverlay"
+	loadOverlay.Size = UDim2.new(5, 0, 5, 0)
+	loadOverlay.Position = UDim2.new(-2, 0, -2, 0)
+	loadOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	loadOverlay.BackgroundTransparency = 0.15
+	loadOverlay.BorderSizePixel = 0
+	loadOverlay.ZIndex = 100
+	loadOverlay.Parent = screenGui
+
+	local loadMainBox = Instance.new("Frame", loadOverlay)
+	loadMainBox.Size = UDim2.new(0, 380, 0, 300)
+	loadMainBox.AnchorPoint = Vector2.new(0.5, 0.5)
+	loadMainBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+	loadMainBox.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
+	loadMainBox.BackgroundTransparency = 0.2
+	loadMainBox.BorderSizePixel = 0
+	loadMainBox.ZIndex = 101
+
+	Instance.new("UICorner", loadMainBox).CornerRadius = UDim.new(0, 16)
+	local boxStroke = Instance.new("UIStroke", loadMainBox)
+	boxStroke.Color = Color3.fromRGB(255, 255, 255)
+	boxStroke.Transparency = 0.3
+	boxStroke.Thickness = 2
+
+	local loadTitle = Instance.new("TextLabel", loadMainBox)
+	loadTitle.Size = UDim2.new(1, 0, 0, 40)
+	loadTitle.Position = UDim2.new(0, 0, 0, 15)
+	loadTitle.BackgroundTransparency = 1
+	loadTitle.Font = Enum.Font.GothamBold
+	loadTitle.Text = "•AbbU DaK 😏•"
+	loadTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+	loadTitle.TextSize = 22
+	loadTitle.TextXAlignment = Enum.TextXAlignment.Center
+	loadTitle.ZIndex = 102
+
+	local decalContainer = Instance.new("Frame", loadMainBox)
+	decalContainer.Size = UDim2.new(0, 90, 0, 90)
+	decalContainer.AnchorPoint = Vector2.new(0.5, 0)
+	decalContainer.Position = UDim2.new(0.5, 0, 0, 65)
+	decalContainer.BackgroundTransparency = 1
+	decalContainer.ZIndex = 102
+
+	local loadDecal = Instance.new("ImageLabel", decalContainer)
+	loadDecal.Size = UDim2.new(1, 0, 1, 0)
+	loadDecal.AnchorPoint = Vector2.new(0.5, 0.5)
+	loadDecal.Position = UDim2.new(0.5, 0, 0.5, 0)
+	loadDecal.BackgroundTransparency = 1
+	loadDecal.Image = "rbxassetid://92236821892613"
+	loadDecal.ScaleType = Enum.ScaleType.Crop
+	loadDecal.ZIndex = 103
+	Instance.new("UICorner", loadDecal).CornerRadius = UDim.new(1, 0)
+
+	local rainbowStroke = Instance.new("UIStroke", loadDecal)
+	rainbowStroke.Thickness = 3.5
+	rainbowStroke.Color = Color3.fromRGB(255, 255, 255)
+	rainbowStroke.Transparency = 0
+
+	task.spawn(function()
+		local t = 0
+		while loadOverlay.Parent do
+			t = t + 0.03
+			local hue = (tick() * 0.2) % 1
+			rainbowStroke.Color = Color3.fromHSV(hue, 1, 1)
+			
+			local scale = 1 + math.sin(t * 2) * 0.08
+			loadDecal.Size = UDim2.new(scale, 0, scale, 0)
+			
+			task.wait(0.03)
+		end
+	end)
+
+	local barBg = Instance.new("Frame", loadMainBox)
+	barBg.Size = UDim2.new(0, 280, 0, 10)
+	barBg.AnchorPoint = Vector2.new(0.5, 0)
+	barBg.Position = UDim2.new(0.5, 0, 0, 210)
+	barBg.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+	barBg.BorderSizePixel = 0
+	barBg.ZIndex = 102
+	Instance.new("UICorner", barBg).CornerRadius = UDim.new(1, 0)
+
+	local barFill = Instance.new("Frame", barBg)
+	barFill.Size = UDim2.new(0, 0, 1, 0)
+	barFill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	barFill.BorderSizePixel = 0
+	barFill.ZIndex = 103
+	Instance.new("UICorner", barFill).CornerRadius = UDim.new(1, 0)
+
+	local loadStatusText = Instance.new("TextLabel", loadMainBox)
+	loadStatusText.Size = UDim2.new(1, 0, 0, 25)
+	loadStatusText.Position = UDim2.new(0, 0, 0, 235)
+	loadStatusText.BackgroundTransparency = 1
+	loadStatusText.Font = Enum.Font.GothamMedium
+	loadStatusText.Text = "loading assets"
+	loadStatusText.TextColor3 = Color3.fromRGB(180, 180, 200)
+	loadStatusText.TextSize = 13
+	loadStatusText.TextXAlignment = Enum.TextXAlignment.Center
+	loadStatusText.ZIndex = 102
+
+	task.spawn(function()
+		local possibleTimes = {10, 13, 16, 20}
+		math.randomseed(tick())
+		local chosenDuration = possibleTimes[math.random(1, #possibleTimes)]
+		
+		local tweenInfo = TweenInfo.new(chosenDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local fillTween = TweenService:Create(barFill, tweenInfo, {Size = UDim2.new(1, 0, 1, 0)})
+		fillTween:Play()
+		
+		fillTween.Completed:Wait()
+		
+		local fadeInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		TweenService:Create(loadOverlay, fadeInfo, {BackgroundTransparency = 1}):Play()
+		TweenService:Create(loadMainBox, fadeInfo, {BackgroundTransparency = 1}):Play()
+		TweenService:Create(boxStroke, fadeInfo, {Transparency = 1}):Play()
+		TweenService:Create(loadTitle, fadeInfo, {TextTransparency = 1}):Play()
+		TweenService:Create(loadDecal, fadeInfo, {ImageTransparency = 1}):Play()
+		TweenService:Create(rainbowStroke, fadeInfo, {Transparency = 1}):Play()
+		TweenService:Create(barBg, fadeInfo, {BackgroundTransparency = 1}):Play()
+		TweenService:Create(barFill, fadeInfo, {BackgroundTransparency = 1}):Play()
+		TweenService:Create(loadStatusText, fadeInfo, {TextTransparency = 1}):Play()
+		TweenService:Create(loadBlur, fadeInfo, {Size = 0}):Play()
+		
+		task.wait(0.5)
+		loadBlur:Destroy()
+		loadOverlay:Destroy()
+	end
